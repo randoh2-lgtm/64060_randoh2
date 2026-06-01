@@ -1,0 +1,77 @@
+---
+---
+title: "Assignment 1: Setting Up R"
+author: "Robert Andoh"
+date: "`r Sys.Date()`"
+output:
+  HTML_document: default
+---
+
+# Question 1
+
+Installed the ISLR package and loaded the library.
+
+```{r}
+library(ISLR)
+```
+
+# Question 2
+
+Print summary statistics and count rows.
+
+```{r}
+summary(Carseats)
+nrow(Carseats)
+```
+
+Answer:
+
+The Carseats dataset contains **400 observations**.
+
+# Question 3
+
+```{r}
+max(Carseats$Advertising)
+```
+
+Answer:
+
+The maximum Advertising value is **29**.
+
+# Question 4
+
+```{r}
+IQR(Carseats$Price)
+```
+
+Answer:
+
+The IQR of Price is **31**.
+
+# Question 5
+
+```{r}
+plot(Carseats$Price,
+     Carseats$Sales,
+     main="Sales vs Price",
+     xlab="Price",
+     ylab="Sales")
+
+cor(Carseats$Price,
+    Carseats$Sales)
+```
+
+Answer:
+
+The scatterplot shows a negative relationship between Sales and Price.
+
+The correlation coefficient is approximately **-0.445**, indicating a moderate negative relationship.
+
+# Question 6
+
+This notebook contains:
+- A title
+- Descriptions
+- Comments
+- R code
+- Results
