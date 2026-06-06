@@ -1,0 +1,47 @@
+---
+title: "Assignment 2: k-NN Classification for Universal Bank Personal Loan Prediction"
+author: "Robert Andoh"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+# Introduction
+
+This assignment applies the k-Nearest Neighbors (k-NN) classification algorithm to predict whether a Universal Bank customer will accept a personal loan offer. The analysis includes data preparation, model building, model evaluation, customer classification, and performance comparison using different data partitions.
+
+# Load Required Packages
+
+The following packages are required for data partitioning, model building, and model evaluation.
+
+```{r}
+library(class)
+library(caret)
+```
+
+# Import and Inspect the Dataset
+
+The Universal Bank dataset is imported into R and examined to understand its structure and dimensions.
+
+```{r}
+bank <- read.csv("UniversalBank-1.csv")
+
+head(bank)
+dim(bank)
+str(bank)
+```
+
+# Distribution of Personal Loan Variable
+
+The target variable is Personal.Loan where:
+
+- 0 = Customer did not accept the loan offer
+- 1 = Customer accepted the loan offer
+```{r}
+table(bank$Personal.Loan)
+
+prop.table(table(bank$Personal.Loan))
+```
