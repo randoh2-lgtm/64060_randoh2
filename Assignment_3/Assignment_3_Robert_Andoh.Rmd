@@ -1,0 +1,245 @@
+---
+title: 'Assignment 3: Naive Bayes Classification'
+author: "Robert Andoh"
+date: "2026-06-13"
+output:
+  pdf_document: default
+  html_document: default
+---
+# Introduction
+
+This assignment demonstrates the application of the Naive Bayes classification algorithm using the Universal Bank dataset.
+
+The objective is to estimate the probability that a customer accepts a personal loan offer based on two predictor variables:
+
+- Online Banking Usage (Online)
+- Credit Card Ownership (CreditCard)
+
+The analysis includes data partitioning, probability calculations, pivot tables, and Naive Bayes model implementation.
+
+
+# Load Required Packages
+
+```{r}
+library(caret)
+library(e1071)
+```
+
+# Import Dataset
+
+```{r}
+bank <- read.csv("UniversalBank-1.csv")
+
+head(bank)
+dim(bank)
+str(bank)
+```
+
+# Prepare Variables for Naive Bayes
+
+```{r}
+bank_nb <- bank[, c("Online", "CreditCard", "Personal.Loan")]
+
+names(bank_nb) <- c("Online", "CC", "Loan")
+
+bank_nb$Online <- factor(bank_nb$Online)
+bank_nb$CC <- factor(bank_nb$CC)
+bank_nb$Loan <- factor(bank_nb$Loan)
+
+head(bank_nb)
+```
+
+# Data Partitioning
+
+```{r}
+set.seed(123)
+
+train_index <- sample(
+  1:nrow(bank_nb),
+  size = 0.60 * nrow(bank_nb)
+)
+
+train <- bank_nb[train_index, ]
+
+validation <- bank_nb[-train_index, ]
+
+dim(train)
+dim(validation)
+```
+
+# Question A: Pivot Table for Training Data
+
+```{r}
+pivot_A <- xtabs(
+  ~ CC + Loan + Online,
+  data = train
+)
+
+pivot_A
+```
+```
+dim(bank_nb)
+dim(train)
+dim(validation)
+
+set.seed(123)
+
+train_index <- sample(
+  1:nrow(bank_nb),
+  size = 0.60 * nrow(bank_nb)
+)
+
+train <- bank_nb[train_index, ]
+
+validation <- bank_nb[-train_index, ]
+
+dim(train)
+dim(validation)
+```{r}
+
+pivot_A <- xtabs(
+  ~ CC + Loan + Online,
+  data = train
+)
+
+pivot_A
+
+```
+# Question B: Posterior Probabilities
+```{r}
+
+prop.table(pivot_A)
+
+```
+# Question C: Separate Pivot Tables
+
+```{r}
+pivot_online <- xtabs(
+  ~ Loan + Online,
+  data = train
+)
+
+pivot_online
+
+pivot_cc <- xtabs(
+  ~ Loan + CC,
+  data = train
+)
+
+pivot_cc
+
+```
+# Question D: Conditional and Prior Probabilities
+
+```{r}
+
+P_CC1_given_Loan1 <- 91 / (187 + 91)
+
+P_Online1_given_Loan1 <- 179 / (99 + 179)
+
+P_Loan1 <- 278 / 3000
+
+P_CC1_given_Loan0 <- 792 / (1930 + 792)
+
+P_Online1_given_Loan0 <- 1620 / (1102 + 1620)
+
+P_Loan0 <- 2722 / 3000
+
+prob_table <- data.frame(
+  Probability = c(
+    "P(CC=1|Loan=1)",
+    "P(Online=1|Loan=1)",
+    "P(Loan=1)",
+    "P(CC=1|Loan=0)",
+    "P(Online=1|Loan=0)",
+    "P(Loan=0)"
+  ),
+  Value = c(
+    P_CC1_given_Loan1,
+    P_Online1_given_Loan1,
+    P_Loan1,
+    P_CC1_given_Loan0,
+    P_Online1_given_Loan0,
+    P_Loan0
+  )
+)
+
+prob_table
+
+```
+# Question E: Manual Naive Bayes Calculation
+
+```{r}
+
+numerator_loan1 <-
+  P_CC1_given_Loan1 *
+  P_Online1_given_Loan1 *
+  P_Loan1
+
+numerator_loan0 <-
+  P_CC1_given_Loan0 *
+  P_Online1_given_Loan0 *
+  P_Loan0
+
+manual_nb_probability <-
+  numerator_loan1 /
+  (numerator_loan1 + numerator_loan0)
+
+manual_nb_probability
+
+```
+# Question F: Compare Pivot Table and Naive Bayes Results
+
+```{r}
+
+pivot_probability <- 57 / (475 + 57)
+
+comparison_table <- data.frame(
+  Method = c(
+    "Pivot Table Estimate",
+    "Naive Bayes Estimate"
+  ),
+  Probability = c(
+    pivot_probability,
+    manual_nb_probability
+  )
+)
+
+comparison_table
+
+```
+
+
+```
+
+
+# Interpretation
+
+The pivot table estimate is obtained directly from the observed frequencies of customers with Online = 1 and CC = 1.
+
+The Naive Bayes estimate is calculated using conditional probabilities and the assumption that Online Banking usage and Credit Card ownership are conditionally independent given loan acceptance.
+
+The pivot table estimate is:
+
+57 / (475 + 57) = 0.1071 (10.71%)
+
+The Naive Bayes estimate is:
+
+0.1106 (11.06%)
+
+The two estimates are very similar, indicating that the Naive Bayes independence assumption works reasonably well for this dataset.
+
+
+# Discussion and Conclusion
+
+This assignment applied the Naive Bayes classification method to predict personal loan acceptance using Online Banking usage and Credit Card ownership.
+
+The dataset was partitioned into training and validation datasets using a 60:40 split. Conditional and prior probabilities were calculated from the training data and used to estimate the probability that a customer would accept a personal loan.
+
+The pivot table approach estimated the probability at approximately 10.71%, while the Naive Bayes classifier estimated the probability at approximately 11.06%.
+
+The similarity between the two estimates suggests that the Naive Bayes conditional independence assumption is reasonable for this dataset.
+
+These findings demonstrate the usefulness of probability-based machine learning methods in customer targeting, lending decision support, and predictive analytics.
+
+
