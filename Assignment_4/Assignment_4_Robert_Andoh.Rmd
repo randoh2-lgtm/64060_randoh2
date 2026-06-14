@@ -1,284 +1,36 @@
----
-title: "Assignment_4: k-Means for Clustering"
-author: "Robert Andoh"
-date: "2026-06-14"
-output:
-  pdf_document: default
-  html_document: default
----
+# Assignment 4 – K-Means Clustering
 
-# Introduction
+**Student:** Robert Andoh
 
-This assignment applies k-Means clustering to financial data from 21 pharmaceutical firms. The purpose is to identify groups of firms with similar financial characteristics using numerical financial variables only.
+## Objective
+Apply K-Means clustering to group pharmaceutical companies based on financial characteristics.
 
-The clustering model uses variables 1 to 9 from the dataset:
+## Dataset
+Pharmaceuticals.csv
 
-- Market capitalization
-- Beta
-- Price/earnings ratio
-- Return on equity
-- Return on assets
-- Asset turnover
-- Leverage
-- Estimated revenue growth
-- Net profit margin
+## Methods
+- Data inspection
+- Variable selection
+- Data standardization
+- Elbow Method
+- K-Means Clustering (k = 3)
+- Cluster profiling
+- Cluster visualization
 
-The non-clustering variables, including median recommendation, headquarters location, and stock exchange, are used later to interpret the cluster patterns.
+## Results
 
-# Load Required Packages
-
-```{r}
-library(cluster)
-library(factoextra)
-```
-
-# Import and Inspect Dataset
-
-```{r}
-pharma <- read.csv("Pharmaceuticals.csv")
-
-head(pharma)
-dim(pharma)
-str(pharma)
-```
-
-# Select Numerical Variables for Clustering
-
-```{r}
-pharma_numeric <- pharma[, c(
-  "Market_Cap",
-  "Beta",
-  "PE_Ratio",
-  "ROE",
-  "ROA",
-  "Asset_Turnover",
-  "Leverage",
-  "Rev_Growth",
-  "Net_Profit_Margin"
-)]
-
-head(pharma_numeric)
-summary(pharma_numeric)
-```
-
-# Standardize the Numerical Variables
-
-```{r}
-pharma_scaled <- scale(pharma_numeric)
-
-head(pharma_scaled)
-summary(pharma_scaled)
-```
-dim(pharma_scaled)
-# Determine the Optimal Number of Clusters
-```{r}
-fviz_nbclust(
-  pharma_scaled,
-  kmeans,
-  method = "wss"
-) +
-  ggtitle("Elbow Method for Selecting Number of Clusters")
-```
-# Build the k-Means Clustering Model
-```{r}
-set.seed(123)
-
-kmeans_model <- kmeans(
-  pharma_scaled,
-  centers = 3,
-  nstart = 25
-)
-
-pharma$Cluster <- as.factor(kmeans_model$cluster)
-
-table(pharma$Cluster)
-```
-```{r}
-pharma$Cluster <- as.factor(kmeans_model$cluster)
-
-head(pharma)
-```
-```{r}
-cluster_membership <- as.data.frame(table(pharma$Cluster))
-names(cluster_membership) <- c("Cluster", "Number_of_Firms")
-
-cluster_membership
-```
-# Cluster Membership
-
-The k-Means algorithm assigned the 21 pharmaceutical firms into three clusters.
+Three clusters were identified:
 
 | Cluster | Number of Firms |
-|----------|----------------|
-| Cluster 1 | 4 |
-| Cluster 2 | 11 |
-| Cluster 3 | 6 |
+|----------|----------|
+| 1 | 4 |
+| 2 | 11 |
+| 3 | 6 |
 
-Cluster 2 contains the largest number of firms and represents the dominant financial profile in the dataset. Clusters 1 and 3 contain fewer firms and represent more specialized financial characteristics.
-```{r}
-cluster_summary <- aggregate(
-  pharma_numeric,
-  by = list(Cluster = pharma$Cluster),
-  mean
-)
+Cluster 2 contained the largest and most profitable firms. Cluster 1 represented moderately sized firms with average performance. Cluster 3 consisted of smaller firms with higher leverage and stronger growth rates.
 
-cluster_summary
-```
-# Cluster Profiles
+## Files Included
 
-Cluster 1 consists of medium-sized firms with relatively high P/E ratios but lower profitability and growth rates. These firms appear to be moderately valued by investors despite weaker operating performance.
-
-Cluster 2 contains the largest and most profitable firms. These firms have the highest market capitalization, strongest return on equity, and highest return on assets. They represent mature and financially strong pharmaceutical companies.
-
-Cluster 3 contains the smallest firms in terms of market capitalization. These firms have the highest leverage and strongest revenue growth. This suggests they may be growth-oriented firms that rely more heavily on debt financing to support expansion.
-```{r}
-cluster_summary <- aggregate(
-  pharma_numeric,
-  by = list(Cluster = pharma$Cluster),
-  FUN = mean
-)
-
-cluster_summary
-```
-# Cluster Visualization
-
-The cluster plot shows clear separation among the three groups of pharmaceutical firms.
-
-Cluster 2 is well separated from the other clusters and represents firms with stronger profitability and larger market capitalization.
-
-Cluster 3 appears distinct because of its higher leverage and growth characteristics.
-
-The visualization confirms that the k-Means algorithm successfully identified meaningful groups within the dataset.
-
-# Determine Appropriate Number of Clusters
-
-```{r}
-set.seed(123)
-
-wss <- numeric(10)
-
-for (k in 1:10) {
-  kmeans_result <- kmeans(pharma_scaled, centers = k, nstart = 25)
-  wss[k] <- kmeans_result$tot.withinss
-}
-
-plot(
-  1:10,
-  wss,
-  type = "b",
-  pch = 19,
-  xlab = "Number of Clusters",
-  ylab = "Total Within-Cluster Sum of Squares",
-  main = "Elbow Method for Selecting Number of Clusters"
-)
-```
-
-# Apply k-Means Clustering
-
-```{r}
-set.seed(123)
-
-kmeans_model <- kmeans(
-  pharma_scaled,
-  centers = 3,
-  nstart = 25
-)
-
-kmeans_model
-```
-
-# Add Cluster Membership to Dataset
-
-```{r}
-pharma$Cluster <- as.factor(kmeans_model$cluster)
-
-pharma[, c("Symbol", "Name", "Cluster")]
-```
-
-# Cluster Size
-
-```{r}
-table(pharma$Cluster)
-```
-
-# Cluster Centers
-
-```{r}
-cluster_centers_scaled <- kmeans_model$centers
-cluster_centers_scaled
-```
-
-# Mean Financial Characteristics by Cluster
-
-```{r}
-cluster_summary <- aggregate(
-  pharma_numeric,
-  by = list(Cluster = pharma$Cluster),
-  FUN = mean
-)
-
-cluster_summary
-```
-
-# Visualize the Clusters
-
-```{r}
-fviz_cluster(
-  kmeans_model,
-  data = pharma_scaled,
-  geom = "point",
-  ellipse.type = "convex",
-  main = "k-Means Clustering of Pharmaceutical Firms"
-)
-```
-
-# Interpret Clusters Using Non-Clustering Variables
-
-```{r}
-table(pharma$Cluster, pharma$Median_Recommendation)
-
-table(pharma$Cluster, pharma$Location)
-
-table(pharma$Cluster, pharma$Exchange)
-```
-# Cluster Profiles
-
-Based on the cluster summary, the three clusters represent distinct groups of pharmaceutical firms.
-
-Cluster 1 contains 4 firms with lower market capitalization, lower ROE, lower ROA, and the lowest net profit margin. This group also has the highest average P/E ratio, suggesting that investors may still value these firms despite weaker current profitability.
-
-Cluster 2 contains 11 firms and represents the strongest financial group. This cluster has the highest average market capitalization, highest ROE, highest ROA, highest asset turnover, and highest net profit margin. These firms appear to be mature, financially strong pharmaceutical companies.
-
-Cluster 3 contains 6 firms with the lowest market capitalization, highest beta, highest leverage, and strongest revenue growth. These firms appear to be smaller, growth-oriented firms that rely more heavily on debt financing.
-
-# Discussion and Conclusion
-
-This assignment used k-Means clustering to group pharmaceutical firms based on nine numerical financial variables. The variables were standardized before clustering because they were measured on different scales. For example, market capitalization is measured in billions of dollars, while beta and leverage are measured as ratios.
-
-The elbow method was used to support the selection of the number of clusters. A three-cluster solution was selected because it provides a reasonable balance between simplicity and meaningful segmentation.
-
-The resulting clusters summarize how pharmaceutical firms differ in terms of size, risk, profitability, asset use, leverage, growth, and profit margin. The non-clustering variables, including analyst recommendation, headquarters location, and exchange, were used to examine whether the financial clusters also show meaningful business patterns.
-
-# Discussion
-
-The clustering analysis demonstrates that pharmaceutical firms differ substantially in their financial characteristics. Market capitalization, profitability, leverage, and growth measures contribute to the formation of distinct clusters.
-
-The results suggest the presence of three major business profiles:
-
-1. Mature, financially strong firms.
-2. Moderate-sized firms with average performance.
-3. Smaller, growth-oriented firms with higher leverage.
-
-These findings could help investors, analysts, and managers better understand competitive positioning within the pharmaceutical industry.
-Overall, k-Means clustering provides a useful exploratory machine learning approach for identifying groups of firms with similar financial profiles.
-
-# Conclusion
-
-This assignment applied the k-Means clustering algorithm to a dataset of 21 pharmaceutical companies using nine financial variables.
-
-All variables were standardized before clustering to ensure comparability across different measurement scales. The elbow method suggested that three clusters provided an appropriate balance between simplicity and explanatory power.
-
-The resulting clusters revealed meaningful differences among firms based on size, profitability, leverage, and growth characteristics. Cluster 2 contained the largest and most profitable firms, Cluster 1 represented moderately sized firms with average performance, and Cluster 3 contained smaller firms with higher leverage and stronger growth rates.
-
-Overall, the analysis demonstrates that k-Means clustering is an effective exploratory machine learning technique for identifying groups of firms with similar financial profiles.
-```
+- Assignment_4_Robert_Andoh.Rmd
+- Assignment_4_Robert_Andoh.pdf
+- Pharmaceuticals.csv
