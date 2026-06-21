@@ -1,0 +1,195 @@
+---
+title: "Assignment 5 - Hierarchical Clustering"
+author: "Robert Andoh"
+date: "`r Sys.Date()`"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(cluster)
+library(factoextra)
+library(dplyr)
+```
+# Import Dataset
+
+```{r}
+cereals <- read.csv("Cereals.csv")
+
+head(cereals)
+dim(cereals)
+str(cereals)
+names(cereals)
+```
+# Check Missing Values
+
+```{r}
+colSums(is.na(cereals))
+```
+# Select Numerical Variables
+
+```{r}
+cereals_numeric <- cereals[, c(
+  "calories",
+  "protein",
+  "fat",
+  "sodium",
+  "fiber",
+  "carbo",
+  "sugars",
+  "potass",
+  "vitamins",
+  "shelf",
+  "weight",
+  "cups",
+  "rating"
+)]
+
+head(cereals_numeric)
+summary(cereals_numeric)
+```
+# Replace Missing Values
+
+```{r}
+cereals_numeric$carbo[is.na(cereals_numeric$carbo)] <-
+  median(cereals_numeric$carbo, na.rm = TRUE)
+
+cereals_numeric$sugars[is.na(cereals_numeric$sugars)] <-
+  median(cereals_numeric$sugars, na.rm = TRUE)
+
+cereals_numeric$potass[is.na(cereals_numeric$potass)] <-
+  median(cereals_numeric$potass, na.rm = TRUE)
+
+colSums(is.na(cereals_numeric))
+```
+# Standardize Variables
+
+```{r}
+cereals_scaled <- scale(cereals_numeric)
+
+head(cereals_scaled)
+summary(cereals_scaled)
+```
+
+```r
+dim(cereals_scaled)
+```
+# Create Distance Matrix
+
+```{r}
+distance_matrix <- dist(
+  cereals_scaled,
+  method = "euclidean"
+)
+
+distance_matrix
+```
+# Hierarchical Clustering
+
+```{r}
+hc_complete <- hclust(
+  distance_matrix,
+  method = "complete"
+)
+
+hc_complete
+```
+# Dendrogram
+
+```{r}
+plot(
+  hc_complete,
+  labels = cereals$name,
+  main = "Hierarchical Clustering Dendrogram",
+  xlab = "",
+  sub = "",
+  cex = 0.6
+)
+```
+# Visualize Cluster Structure
+
+```{r}
+fviz_dend(
+  hc_complete,
+  k = 3,
+  rect = TRUE,
+  rect_fill = TRUE,
+  rect_border = "red"
+)
+```
+# Assign Clusters
+
+```{r}
+cereals$Cluster <- as.factor(
+  cutree(hc_complete, k = 3)
+)
+
+table(cereals$Cluster)
+```
+# Cluster Profiles
+
+```{r}
+cluster_summary <- aggregate(
+  cereals_numeric,
+  by = list(Cluster = cereals$Cluster),
+  FUN = mean
+)
+
+cluster_summary
+```
+
+# Additional Cluster Interpretation
+
+```{r}
+table(cereals$Cluster, cereals$mfr)
+
+table(cereals$Cluster, cereals$type)
+
+table(cereals$Cluster, cereals$shelf)
+```
+# Interpretation Using Non-Clustering Variables
+## Cereal Type
+Cluster 1 contains only cold cereals.
+Cluster 2 contains both cold and hot cereals.
+Cluster 3 contains only cold cereals.
+Hot cereals appear concentrated within Cluster 2, suggesting they share similar nutritional characteristics.
+
+# Shelf Placement
+Cluster 1 cereals are found exclusively on Shelf 3.
+Cluster 2 cereals are distributed across all shelves.
+Cluster 3 cereals dominate Shelf 3 and represent the majority of products throughout the store.
+
+This suggests that shelf placement may reflect product popularity and market positioning.
+
+
+# Cluster Interpretation
+## Cluster 1 (3 Cereals)
+
+Cluster 1 contains only three cereals and represents the healthiest cereals in the dataset. These cereals have the lowest calorie content, the highest protein content, and exceptionally high fiber and potassium levels. Their relatively low sugar content suggests that these cereals are designed for health-conscious consumers seeking high nutritional value and dietary benefits.
+
+# Cluster 2 (15 Cereals)
+
+Cluster 2 represents moderately healthy cereals. These cereals have lower calories and sodium levels than Cluster 3 while maintaining moderate fiber and carbohydrate content. They also contain the lowest average sugar content among the clusters. This group appears to target consumers seeking a balance between taste and nutritional quality.
+
+# Cluster 3 (59 Cereals)
+
+Cluster 3 is the largest cluster and contains the majority of cereals in the dataset. These cereals have the highest calorie levels, highest sodium levels, and highest sugar content. Fiber and protein levels are relatively low compared to Cluster 1. This cluster likely represents mainstream commercial cereals designed primarily for taste and mass-market appeal rather than nutritional optimization.
+
+# Findings
+
+The hierarchical clustering analysis identified three distinct groups of cereals based on nutritional characteristics. Cluster 1 consisted of a small group of highly nutritious cereals characterized by high fiber, protein, and potassium content with low calories and sugars. Cluster 2 represented moderately healthy cereals with balanced nutritional profiles and the presence of both hot and cold cereal products. Cluster 3 contained the majority of cereals and was characterized by higher calories, sodium, and sugar levels, reflecting typical mass-market cereal products. The results demonstrate that hierarchical clustering can effectively segment cereal products into meaningful nutritional groups that may assist manufacturers, retailers, and consumers in product evaluation and decision-making.
+
+# Conclusion 
+
+This assignment applied hierarchical clustering techniques to a cereal nutrition dataset consisting of 77 cereal products. After handling missing values and standardizing the numerical variables, Euclidean distance and complete linkage methods were used to construct a hierarchical clustering model.
+
+The dendrogram and cluster analysis revealed three meaningful clusters that differed substantially in terms of calories, protein, fiber, sugar, sodium, and potassium content. Cluster 1 represented highly nutritious cereals, Cluster 2 represented moderately healthy cereals, and Cluster 3 represented mainstream cereal products with higher calorie and sugar levels.
+
+Overall, the analysis demonstrates that hierarchical clustering is a valuable unsupervised machine learning technique for identifying natural groupings within complex datasets and providing actionable insights into product characteristics and consumer market segments
+
+
+
